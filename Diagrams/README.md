@@ -1,44 +1,38 @@
-# Project Diagrams
+# TripWallet — Architecture Diagrams
 
-This directory contains visual representations of the SubSplit (Trip Wallet) system architecture and data models. These diagrams are essential for understanding the overall structure, design patterns, and database relationships of the application.
+Welcome to the TripWallet diagrams directory. This folder contains the visual documentation for the TripWallet application's architecture, database design, and system flows following the class-based redesign.
 
-### 🔗 Excalidraw Board
-**[View All Diagrams on Excalidraw](https://excalidraw.com/#json=dl65bLRFbhDIqk1L6ELma,hBHeJVx5erFafUHcXbZqQw)**
+## Live Editable Diagrams
 
----
-
-## 1. Architecture Class Diagram
-
-### Overview
-This diagram illustrates the new class-based TypeScript structure of the backend application. It details the various layers (Controllers, Services) and the specific Gang of Four (GoF) design patterns implemented to ensure a scalable and maintainable codebase.
-
-### Key Components & Patterns Included:
-- **Singleton:** `Database` and `EventBus`
-- **Template Method:** `BaseController` and `BaseService`
-- **Strategy:** Expense splitting logic (`EqualSplitStrategy`, `PercentageSplitStrategy`, etc.)
-- **Factory:** Notification creation (`NotificationFactory`)
-- **Observer:** Event handling (`TripObserver`, `EventBus`)
-- **Adapter:** External API integration (`ImageProviderAdapter`, `UnsplashAdapter`)
-
-### Use Cases:
-- **Developer Onboarding:** Provides a high-level map of the backend services, making it easier for new contributors to understand the codebase.
-- **Refactoring Guide:** Acts as the blueprint for migrating legacy procedural JavaScript code into the structured, object-oriented TypeScript design.
-- **Feature Extension:** Helps developers determine where to inject new features (e.g., adding a new `SplitStrategy` without modifying existing core logic).
+You can view, edit, and export the entire collection of diagrams interactively via Excalidraw:
+**[View on Excalidraw](https://excalidraw.com/#json=dl65bLRFbhDIqk1L6ELma,hBHeJVx5erFafUHcXbZqQw)**
 
 ---
 
-## 2. Entity-Relationship Diagram (ERD)
+## 1. UML Component Diagram
+**Description:** A macro-level map of the entire system. It traces the data pipeline from the React Client, through the Express server's Routes, Controllers, and Services, all the way down to the MongoDB Database and external APIs (like Unsplash). 
+**Use Cases:**
+* **System Overview:** Use this when explaining the full stack to stakeholders or new team members.
+* **Refactoring/Scaling:** Look at this diagram to understand module dependencies before breaking the monolith into microservices or swapping out front-end components.
+* **Deployment Planning:** Helps DevOps understand which external services and internal layers need to be configured for a production environment.
 
-### Overview
-The ERD visualizes the MongoDB database schema, showcasing the core entities and how they reference one another via Mongoose `ObjectId` mapping.
+## 2. Class Diagram
+**Description:** A detailed blueprint of the backend's Object-Oriented Programming (OOP) structure. It highlights inheritance (like `BaseController` and `BaseService`), method signatures, and the specific Design Patterns (Singleton, Template, Strategy, Factory, Observer, Adapter) used across the system.
+**Use Cases:**
+* **Developer Onboarding:** Helps new engineers understand the internal API and how to build new features (e.g., seeing that a new service must extend `BaseService`).
+* **Code Reviews:** Serves as a reference to ensure new code adheres to the established architectural patterns (like ensuring the `EventBus` is used for side-effects instead of direct service-to-service calls).
+* **Adding Features:** If you need to add a new expense splitting method, this diagram shows exactly where the `SplitStrategy` interface lives and how it connects.
 
-### Key Entities:
-- **User:** The core account entity.
-- **Trip:** An event/trip created by a User, involving multiple participant Users.
-- **Expense:** Individual cost items associated with a specific Trip and paid by a specific user.
-- **Notification:** Actionable alerts (e.g., Trip Invites) sent between users.
+## 3. Entity-Relationship Diagram (ERD)
+**Description:** Visualizes the MongoDB document schema. It defines the core data entities (`USER`, `TRIP`, `EXPENSE`, `NOTIFICATION`) and maps out their primary/foreign keys and relationships (e.g., One User creates Many Trips; A Trip has Many Expenses).
+**Use Cases:**
+* **Writing Database Queries:** Keep this open when writing complex Mongoose `populate()` or aggregation pipelines to ensure you are referencing the correct ObjectIds.
+* **Data Migrations:** Use this as a map when altering schemas to understand cascading impacts (e.g., what happens to an `EXPENSE` if a `TRIP` is deleted).
+* **Feature Scoping:** Quickly verify if the current database structure supports a proposed feature without needing structural changes.
 
-### Use Cases:
-- **Database Architecture:** Helps backend engineers understand how collections are structured and linked.
-- **Query Construction:** Assists in visualizing `populate()` chains needed when fetching deeply nested data (e.g., Trip -> Expenses -> PaidBy User).
-- **Data Integrity:** Clearly outlines required relationships and structural expectations for documents stored in the database.
+## 4. Sequence Diagram (Create Trip Flow)
+**Description:** A step-by-step, time-based visualization of a specific runtime process: a user creating a new trip. It shows the exact chronological interactions between the Client, Router, Controller, Service, Database, EventBus, and External APIs.
+**Use Cases:**
+* **Debugging:** If the `POST /api/trips` endpoint fails, this diagram helps pinpoint exactly where the breakdown occurred (e.g., did the Unsplash Adapter fail, or did the EventBus drop the notification payload?).
+* **Understanding Asynchronous Flows:** Clearly separates the synchronous request/response cycle from the asynchronous background tasks (like the `NotificationFactory` triggering via the `EventBus`).
+* **Writing Integration Tests:** Provides a literal checklist of all the steps and mocks required to properly write a test for the trip creation endpoint.
