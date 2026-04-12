@@ -3,6 +3,7 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import Database from './database/Database';
+import AuthController from './controllers/AuthController';
 
 dotenv.config();
 
@@ -42,12 +43,20 @@ const initDB = async () => {
 
 const startServer = async () => {
   await initDB();
+
+  // Controllers
+  const authController = new AuthController();
+
+  // Routes
   app.get('/', (req: Request, res: Response) => {
     res.send('Server is running (TypeScript)');
   });
+  app.use('/api/auth', authController.router);
+
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
 };
 
 startServer();
+
