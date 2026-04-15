@@ -9,9 +9,9 @@ class AuthController extends BaseController {
   private authService: AuthService;
   public router: Router;
 
-  constructor() {
+  constructor(authService: AuthService) {
     super();
-    this.authService = new AuthService();
+    this.authService = authService;
     this.router = Router();
     this.initRoutes();
   }

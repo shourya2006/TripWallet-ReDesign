@@ -4,6 +4,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import Database from './database/Database';
 import AuthController from './controllers/AuthController';
+import AuthService from './services/AuthService';
 
 dotenv.config();
 
@@ -44,8 +45,11 @@ const initDB = async () => {
 const startServer = async () => {
   await initDB();
 
+  // Services
+  const authService = new AuthService();
+
   // Controllers
-  const authController = new AuthController();
+  const authController = new AuthController(authService);
 
   // Routes
   app.get('/', (req: Request, res: Response) => {
