@@ -5,7 +5,7 @@ Welcome to the TripWallet diagrams directory. This folder contains the visual do
 ## Live Editable Diagrams
 
 You can view, edit, and export the entire collection of diagrams interactively via Excalidraw:
-**[View on Excalidraw](https://excalidraw.com/#json=xpVcBdZ1hvrqeOgYBsYdt,3cISTHA3PnHDKFHVfq6F-g)**
+**[View on Excalidraw](https://excalidraw.com/#json=XhIEWf97-T5w9-dJsVKzm,mFIFB_Ua7jruhtcEuzesYg)**
 
 ---
 
