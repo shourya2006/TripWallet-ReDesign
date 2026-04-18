@@ -4,7 +4,9 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import Database from './database/Database';
 import AuthController from './controllers/AuthController';
+import TripController from './controllers/TripController';
 import AuthService from './services/AuthService';
+import TripService from './services/TripService';
 
 dotenv.config();
 
@@ -47,15 +49,18 @@ const startServer = async () => {
 
   // Services
   const authService = new AuthService();
+  const tripService = new TripService();
 
   // Controllers
   const authController = new AuthController(authService);
+  const tripController = new TripController(tripService);
 
   // Routes
   app.get('/', (req: Request, res: Response) => {
     res.send('Server is running (TypeScript)');
   });
   app.use('/api/auth', authController.router);
+  app.use('/api/trips', tripController.router);
 
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
@@ -63,4 +68,3 @@ const startServer = async () => {
 };
 
 startServer();
-
