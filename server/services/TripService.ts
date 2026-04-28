@@ -1,22 +1,8 @@
 
-import { Document } from 'mongoose';
 import { BaseService } from './BaseService';
-
-const Trip = require('../models/Trip');
-const Expense = require('../models/Expense');
-const Notification = require('../models/Notification');
-
-interface ITrip extends Document {
-  title: string;
-  date: string;
-  startDate?: Date;
-  endDate?: Date;
-  total: number;
-  image?: string;
-  participants: any[];
-  createdBy: any;
-  createdAt: Date;
-}
+import Trip, { ITrip } from '../models/Trip';
+import Expense from '../models/Expense';
+import Notification from '../models/Notification';
 
 interface TripFilters {
   page?: number;
@@ -213,7 +199,7 @@ class TripService extends BaseService<ITrip> {
       throw { status: 403, message: 'Not authorized to add participants to this trip' };
     }
 
-    if (trip.participants.includes(targetUserId)) {
+    if (trip.participants.some((p: any) => p.toString() === targetUserId)) {
       throw { status: 400, message: 'User is already a participant' };
     }
 

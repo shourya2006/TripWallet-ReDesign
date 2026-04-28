@@ -1,15 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { Document } from 'mongoose';
 import { BaseService } from './BaseService';
-const User = require('../models/User');
-
-interface IUser extends Document {
-  username: string;
-  email: string;
-  password: string;
-  token?: string;
-}
+import User, { IUser } from '../models/User';
 
 interface AuthResponse {
   user: IUser;
