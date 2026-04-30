@@ -7,6 +7,7 @@ import AuthController from './controllers/AuthController';
 import TripController from './controllers/TripController';
 import AuthService from './services/AuthService';
 import TripService from './services/TripService';
+import { UnsplashAdapter } from './adapters/UnsplashAdapter';
 
 dotenv.config();
 
@@ -47,9 +48,12 @@ const initDB = async () => {
 const startServer = async () => {
   await initDB();
 
+  // Adapters
+  const unsplashAdapter = new UnsplashAdapter('acngLKDQjaIDcf_DPzuCvxzox_uusRJCI3ylzXX01B8');
+
   // Services
   const authService = new AuthService();
-  const tripService = new TripService();
+  const tripService = new TripService(unsplashAdapter);
 
   // Controllers
   const authController = new AuthController(authService);

@@ -3,6 +3,7 @@ import { BaseService } from './BaseService';
 import Trip, { ITrip } from '../models/Trip';
 import Expense from '../models/Expense';
 import Notification from '../models/Notification';
+import { ImageProviderAdapter } from '../adapters/ImageProviderAdapter';
 
 interface TripFilters {
   page?: number;
@@ -14,9 +15,11 @@ interface TripFilters {
 }
 
 class TripService extends BaseService<ITrip> {
+  private imageProvider: ImageProviderAdapter;
 
-  constructor() {
+  constructor(imageProvider: ImageProviderAdapter) {
     super(Trip);
+    this.imageProvider = imageProvider;
   }
 
   async getTrips(userId: string, filters: any) {
@@ -100,20 +103,7 @@ class TripService extends BaseService<ITrip> {
       throw { status: 400, message: 'You already have a trip with this name.' };
     }
 
-    let tripImage: string | undefined;
-    try {
-      const unsplashResponse = await fetch(
-        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(data.title)}&orientation=landscape&per_page=1&client_id=acngLKDQjaIDcf_DPzuCvxzox_uusRJCI3ylzXX01B8`
-      );
-      if (unsplashResponse.ok) {
-        const imgData: any = await unsplashResponse.json();
-        if (imgData.results && imgData.results.length > 0) {
-          tripImage = imgData.results[0].urls.regular;
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching image from Unsplash:', error);
-    }
+    const tripImage = await this.imageProvider.fetchImage(data.title) || undefined;
 
     const newTrip = new Trip({
       title: data.title,
