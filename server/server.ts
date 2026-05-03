@@ -8,6 +8,8 @@ import TripController from './controllers/TripController';
 import AuthService from './services/AuthService';
 import TripService from './services/TripService';
 import { UnsplashAdapter } from './adapters/UnsplashAdapter';
+import EventBus from './events/EventBus';
+import { TripObserver } from './observers/TripObserver';
 
 dotenv.config();
 
@@ -47,6 +49,10 @@ const initDB = async () => {
 
 const startServer = async () => {
   await initDB();
+
+  // Initialize EventBus and Observers
+  EventBus.getInstance();
+  new TripObserver();
 
   // Adapters
   const unsplashAdapter = new UnsplashAdapter('acngLKDQjaIDcf_DPzuCvxzox_uusRJCI3ylzXX01B8');

@@ -4,6 +4,8 @@ import Trip, { ITrip } from '../models/Trip';
 import Expense from '../models/Expense';
 import Notification from '../models/Notification';
 import { ImageProviderAdapter } from '../adapters/ImageProviderAdapter';
+import EventBus from '../events/EventBus';
+import NotificationFactory from '../factories/NotificationFactory';
 
 interface TripFilters {
   page?: number;
@@ -118,13 +120,11 @@ class TripService extends BaseService<ITrip> {
     const trip = await newTrip.save();
 
     if (data.participants && data.participants.length > 0) {
-      const notifications = data.participants.map((recipientId: string) => ({
-        recipient: recipientId,
-        sender: userId,
-        type: 'TRIP_INVITE',
+      EventBus.getInstance().emit('trip.created', {
         tripId: trip._id,
-      }));
-      await Notification.insertMany(notifications);
+        senderId: userId,
+        participants: data.participants
+      });
     }
 
     return trip;
@@ -204,13 +204,7 @@ class TripService extends BaseService<ITrip> {
       throw { status: 400, message: 'Invitation already sent to this user' };
     }
 
-    const notification = new Notification({
-      recipient: targetUserId,
-      sender: senderId,
-      type: 'TRIP_INVITE',
-      tripId: trip._id,
-    });
-    await notification.save();
+    await NotificationFactory.create('TRIP_INVITE', targetUserId, senderId, trip._id.toString());
 
     return { msg: 'Invitation sent successfully' };
   }
