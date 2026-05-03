@@ -32,7 +32,7 @@ app.use(express.json());
 
 
 app.use((req: Request, res: Response, next: NextFunction) => {
-  console.log([${new Date().toISOString()}] ${req.method} ${req.url});
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
 
@@ -82,7 +82,7 @@ const startServer = async () => {
   app.use('/api/users', userController.router);
 
   app.listen(PORT, () => {
-    console.log(Server is running on port ${PORT});
+    console.log(`Server is running on port ${PORT}`);
   });
 };
 
