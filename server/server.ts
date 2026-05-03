@@ -13,6 +13,8 @@ import { TripObserver } from './observers/TripObserver';
 import { EqualSplitStrategy } from './strategies/EqualSplitStrategy';
 import UserService from './services/UserService';
 import UserController from './controllers/UserController';
+import ExpenseService from './services/ExpenseService';
+import ExpenseController from './controllers/ExpenseController';
 
 dotenv.config();
 
@@ -67,11 +69,13 @@ const startServer = async () => {
   const authService = new AuthService();
   const tripService = new TripService(unsplashAdapter);
   const userService = new UserService(equalSplitStrategy);
+  const expenseService = new ExpenseService();
 
   // Controllers
   const authController = new AuthController(authService);
   const tripController = new TripController(tripService);
   const userController = new UserController(userService);
+  const expenseController = new ExpenseController(expenseService);
 
   // Routes
   app.get('/', (req: Request, res: Response) => {
@@ -80,6 +84,7 @@ const startServer = async () => {
   app.use('/api/auth', authController.router);
   app.use('/api/trips', tripController.router);
   app.use('/api/users', userController.router);
+  app.use('/api/expenses', expenseController.router);
 
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
