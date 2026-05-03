@@ -10,6 +10,9 @@ import TripService from './services/TripService';
 import { UnsplashAdapter } from './adapters/UnsplashAdapter';
 import EventBus from './events/EventBus';
 import { TripObserver } from './observers/TripObserver';
+import { EqualSplitStrategy } from './strategies/EqualSplitStrategy';
+import UserService from './services/UserService';
+import UserController from './controllers/UserController';
 
 dotenv.config();
 
@@ -29,7 +32,7 @@ app.use(express.json());
 
 
 app.use((req: Request, res: Response, next: NextFunction) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log([${new Date().toISOString()}] ${req.method} ${req.url});
   next();
 });
 
@@ -57,13 +60,18 @@ const startServer = async () => {
   // Adapters
   const unsplashAdapter = new UnsplashAdapter('acngLKDQjaIDcf_DPzuCvxzox_uusRJCI3ylzXX01B8');
 
+  // Strategies
+  const equalSplitStrategy = new EqualSplitStrategy();
+
   // Services
   const authService = new AuthService();
   const tripService = new TripService(unsplashAdapter);
+  const userService = new UserService(equalSplitStrategy);
 
   // Controllers
   const authController = new AuthController(authService);
   const tripController = new TripController(tripService);
+  const userController = new UserController(userService);
 
   // Routes
   app.get('/', (req: Request, res: Response) => {
@@ -71,9 +79,10 @@ const startServer = async () => {
   });
   app.use('/api/auth', authController.router);
   app.use('/api/trips', tripController.router);
+  app.use('/api/users', userController.router);
 
   app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(Server is running on port ${PORT});
   });
 };
 
