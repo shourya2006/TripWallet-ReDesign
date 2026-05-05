@@ -1,4 +1,6 @@
 import dotenv from 'dotenv';
+dotenv.config();
+
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -10,19 +12,19 @@ import TripService from './services/TripService';
 import { UnsplashAdapter } from './adapters/UnsplashAdapter';
 import EventBus from './events/EventBus';
 import { TripObserver } from './observers/TripObserver';
-import { EqualSplitStrategy } from './strategies/EqualSplitStrategy';
+
 import UserService from './services/UserService';
 import UserController from './controllers/UserController';
 import ExpenseService from './services/ExpenseService';
 import ExpenseController from './controllers/ExpenseController';
-
-dotenv.config();
+import NotificationService from './services/NotificationService';
+import NotificationController from './controllers/NotificationController';
 
 const app: Express = express();
 const PORT: number = parseInt(process.env.PORT || '3001', 10);
 
 const corsOptions = {
-  origin: 'http://localhost:5173',
+  origin: ['http://localhost:5173', 'http://localhost:5174'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -62,20 +64,21 @@ const startServer = async () => {
   // Adapters
   const unsplashAdapter = new UnsplashAdapter('acngLKDQjaIDcf_DPzuCvxzox_uusRJCI3ylzXX01B8');
 
-  // Strategies
-  const equalSplitStrategy = new EqualSplitStrategy();
+
 
   // Services
   const authService = new AuthService();
   const tripService = new TripService(unsplashAdapter);
-  const userService = new UserService(equalSplitStrategy);
+  const userService = new UserService();
   const expenseService = new ExpenseService();
+  const notificationService = new NotificationService();
 
   // Controllers
   const authController = new AuthController(authService);
   const tripController = new TripController(tripService);
   const userController = new UserController(userService);
   const expenseController = new ExpenseController(expenseService);
+  const notificationController = new NotificationController(notificationService);
 
   // Routes
   app.get('/', (req: Request, res: Response) => {
@@ -85,6 +88,7 @@ const startServer = async () => {
   app.use('/api/trips', tripController.router);
   app.use('/api/users', userController.router);
   app.use('/api/expenses', expenseController.router);
+  app.use('/api/notifications', notificationController.router);
 
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

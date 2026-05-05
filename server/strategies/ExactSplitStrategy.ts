@@ -1,18 +1,19 @@
 import { SplitStrategy } from './SplitStrategy';
 
 export class ExactSplitStrategy implements SplitStrategy {
-  private exactAmounts: Map<string, number>;
-
-  constructor(exactAmounts: Map<string, number>) {
-    this.exactAmounts = exactAmounts;
-  }
-
-  calculate(amount: number, participants: string[]): Map<string, number> {
+  calculate(amount: number, participants: string[], details?: Record<string, number>): Map<string, number> {
     const splitMap = new Map<string, number>();
-    
+
+    if (!details || Object.keys(details).length === 0) {
+      // Fallback to equal split if no exact amounts provided
+      const splitAmount = Math.round((amount / participants.length) * 100) / 100;
+      participants.forEach(userId => splitMap.set(userId, splitAmount));
+      return splitMap;
+    }
+
     let runningTotal = 0;
     for (const userId of participants) {
-      const individualAmount = this.exactAmounts.get(userId) || 0;
+      const individualAmount = details[userId] || 0;
       runningTotal += individualAmount;
       splitMap.set(userId, individualAmount);
     }

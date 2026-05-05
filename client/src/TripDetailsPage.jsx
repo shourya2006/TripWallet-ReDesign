@@ -26,6 +26,8 @@ const TripDetailsPage = () => {
     amount: "",
     paidBy: "",
   });
+  const [splitType, setSplitType] = useState("equal");
+  const [splitDetails, setSplitDetails] = useState({});
 
   const [isAddFriendModalOpen, setIsAddFriendModalOpen] = useState(false);
   const [friendSearchQuery, setFriendSearchQuery] = useState("");
@@ -44,7 +46,8 @@ const TripDetailsPage = () => {
         }
       );
       if (tripRes.ok) {
-        const data = await tripRes.json();
+        const json = await tripRes.json();
+        const data = json.data;
         setTrip(data);
         setEditForm(data);
       } else {
@@ -60,8 +63,8 @@ const TripDetailsPage = () => {
         }
       );
       if (expRes.ok) {
-        const expData = await expRes.json();
-        setExpenses(expData);
+        const json = await expRes.json();
+        setExpenses(json.data);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -91,8 +94,8 @@ const TripDetailsPage = () => {
       );
 
       if (response.ok) {
-        const updatedTrip = await response.json();
-        setTrip(updatedTrip);
+        const json = await response.json();
+        setTrip(json.data);
         setIsEditing(false);
       }
     } catch (error) {
@@ -197,6 +200,17 @@ const TripDetailsPage = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
+
+      // Build splitDetails using participant IDs as keys
+      let finalSplitDetails = {};
+      if (splitType !== "equal" && trip.participants) {
+        trip.participants.forEach((p) => {
+          if (splitDetails[p._id] !== undefined) {
+            finalSplitDetails[p._id] = Number(splitDetails[p._id]);
+          }
+        });
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/expenses`,
         {
@@ -208,6 +222,8 @@ const TripDetailsPage = () => {
           body: JSON.stringify({
             ...newExpense,
             tripId: id,
+            splitType,
+            splitDetails: splitType === "equal" ? {} : finalSplitDetails,
           }),
         }
       );
@@ -215,6 +231,8 @@ const TripDetailsPage = () => {
       if (response.ok) {
         setIsExpenseModalOpen(false);
         setNewExpense({ description: "", amount: "", paidBy: "" });
+        setSplitType("equal");
+        setSplitDetails({});
         fetchTripData();
       }
     } catch (error) {
@@ -239,9 +257,9 @@ const TripDetailsPage = () => {
         }
       );
       if (response.ok) {
-        const data = await response.json();
-
-        const filtered = data.filter(
+        const json = await response.json();
+        const data = json.data;
+        const filtered = (data || []).filter(
           (u) => !trip.participants.some((p) => p._id === u._id)
         );
         setFriendSearchResults(filtered);
@@ -449,6 +467,13 @@ const TripDetailsPage = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
+                        <span className={`text-xs px-2 py-0.5 rounded-full border ${
+                          expense.splitType === 'percentage' ? 'border-purple-500/30 text-purple-400 bg-purple-500/10' :
+                          expense.splitType === 'exact' ? 'border-amber-500/30 text-amber-400 bg-amber-500/10' :
+                          'border-white/10 text-white/40 bg-white/5'
+                        }`}>
+                          {expense.splitType === 'percentage' ? '% Split' : expense.splitType === 'exact' ? 'Exact' : 'Equal'}
+                        </span>
                         <div className="text-lg font-medium">
                           ₹{expense.amount.toLocaleString()}
                         </div>
@@ -512,7 +537,7 @@ const TripDetailsPage = () => {
 
       {isExpenseModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl w-full max-w-md p-6 relative shadow-2xl">
+          <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl w-full max-w-md p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setIsExpenseModalOpen(false)}
               className="absolute top-4 right-4 text-white/60 hover:text-white"
@@ -577,6 +602,102 @@ const TripDetailsPage = () => {
                     ))}
                 </select>
               </div>
+
+              {/* Split Type Selector */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Split Type</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {["equal", "percentage", "exact"].map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => {
+                        setSplitType(type);
+                        setSplitDetails({});
+                      }}
+                      className={`py-2 px-3 rounded-lg text-sm font-medium border transition-all duration-200 ${
+                        splitType === type
+                          ? type === "equal"
+                            ? "bg-white text-black border-white"
+                            : type === "percentage"
+                            ? "bg-purple-500/20 text-purple-300 border-purple-500/50"
+                            : "bg-amber-500/20 text-amber-300 border-amber-500/50"
+                          : "bg-white/5 text-white/60 border-white/10 hover:bg-white/10"
+                      }`}
+                    >
+                      {type === "equal" ? "Equal" : type === "percentage" ? "Percentage" : "Exact"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dynamic Split Inputs */}
+              {splitType === "percentage" && trip.participants && (
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-purple-300">Percentage per person</label>
+                  {trip.participants.map((p) => (
+                    <div key={p._id} className="flex items-center gap-3">
+                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                        {p.username?.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="text-sm flex-1 truncate">{p.username}</span>
+                      <div className="relative w-24">
+                        <input
+                          type="number"
+                          placeholder="0"
+                          value={splitDetails[p._id] || ""}
+                          onChange={(e) =>
+                            setSplitDetails({ ...splitDetails, [p._id]: e.target.value })
+                          }
+                          className="w-full bg-white/5 border border-purple-500/20 rounded-lg py-2 px-3 pr-7 text-sm focus:outline-none focus:border-purple-500/50 transition-colors text-right"
+                        />
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-purple-400/60 text-xs">%</span>
+                      </div>
+                    </div>
+                  ))}
+                  <div className={`text-xs text-right ${
+                    Math.abs(Object.values(splitDetails).reduce((sum, v) => sum + Number(v || 0), 0) - 100) < 0.01
+                      ? "text-green-400" : "text-red-400"
+                  }`}>
+                    Total: {Object.values(splitDetails).reduce((sum, v) => sum + Number(v || 0), 0).toFixed(1)}%
+                    {Math.abs(Object.values(splitDetails).reduce((sum, v) => sum + Number(v || 0), 0) - 100) >= 0.01 && " (must be 100%)"}
+                  </div>
+                </div>
+              )}
+
+              {splitType === "exact" && trip.participants && (
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-amber-300">Exact amount per person</label>
+                  {trip.participants.map((p) => (
+                    <div key={p._id} className="flex items-center gap-3">
+                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                        {p.username?.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="text-sm flex-1 truncate">{p.username}</span>
+                      <div className="relative w-24">
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-amber-400/60 text-xs">₹</span>
+                        <input
+                          type="number"
+                          placeholder="0"
+                          value={splitDetails[p._id] || ""}
+                          onChange={(e) =>
+                            setSplitDetails({ ...splitDetails, [p._id]: e.target.value })
+                          }
+                          className="w-full bg-white/5 border border-amber-500/20 rounded-lg py-2 pl-6 pr-3 text-sm focus:outline-none focus:border-amber-500/50 transition-colors text-right"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  <div className={`text-xs text-right ${
+                    newExpense.amount && Math.abs(Object.values(splitDetails).reduce((sum, v) => sum + Number(v || 0), 0) - Number(newExpense.amount)) < 0.01
+                      ? "text-green-400" : "text-red-400"
+                  }`}>
+                    Total: ₹{Object.values(splitDetails).reduce((sum, v) => sum + Number(v || 0), 0).toFixed(2)}
+                    {newExpense.amount && Math.abs(Object.values(splitDetails).reduce((sum, v) => sum + Number(v || 0), 0) - Number(newExpense.amount)) >= 0.01
+                      && ` (must be ₹${Number(newExpense.amount).toFixed(2)})`}
+                  </div>
+                </div>
+              )}
 
               <button
                 type="submit"

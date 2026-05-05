@@ -2,14 +2,11 @@ import { BaseService } from './BaseService';
 import User, { IUser } from '../models/User';
 import Trip from '../models/Trip';
 import Expense from '../models/Expense';
-import { SplitStrategy } from '../strategies/SplitStrategy';
+import { SplitStrategyFactory } from '../strategies/SplitStrategyFactory';
 
 class UserService extends BaseService<IUser> {
-  private splitStrategy: SplitStrategy;
-
-  constructor(splitStrategy: SplitStrategy) {
+  constructor() {
     super(User);
-    this.splitStrategy = splitStrategy;
   }
 
   async getBalance(userId: string) {
@@ -30,7 +27,10 @@ class UserService extends BaseService<IUser> {
       if (participantsStr.length === 0) continue;
 
       for (const expense of expenses) {
-        const splitMap = this.splitStrategy.calculate(expense.amount, participantsStr);
+        // Use the factory to pick the right strategy per expense
+        const strategy = SplitStrategyFactory.getStrategy(expense.splitType || 'equal');
+        const details = expense.splitDetails || {};
+        const splitMap = strategy.calculate(expense.amount, participantsStr, details);
         const userSplitAmount = splitMap.get(userId) || 0;
 
         if (expense.paidBy === user.username) {

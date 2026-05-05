@@ -33,7 +33,8 @@ export const AuthProvider = ({ children }) => {
         throw new Error(errorData || "Login failed");
       }
 
-      const data = await response.json();
+      const json = await response.json();
+      const data = json.data;
       localStorage.setItem("token", data.token);
       localStorage.setItem("refreshToken", data.refreshToken);
       localStorage.setItem("user", JSON.stringify(data.user));
@@ -63,7 +64,8 @@ export const AuthProvider = ({ children }) => {
         throw new Error(errorData || "Registration failed");
       }
 
-      const data = await response.json();
+      const json = await response.json();
+      const data = json.data;
       localStorage.setItem("token", data.token);
       localStorage.setItem("refreshToken", data.refreshToken);
       localStorage.setItem("user", JSON.stringify(data.user));

@@ -12,7 +12,7 @@ class ExpenseService extends BaseService<IExpense> {
     return expenses;
   }
 
-  async addExpense(data: { description: string; amount: number; paidBy: string; tripId: string; date?: string }, userId: string) {
+  async addExpense(data: { description: string; amount: number; paidBy: string; tripId: string; date?: string; splitType?: string; splitDetails?: Record<string, number> }, userId: string) {
     const trip = await Trip.findById(data.tripId);
     if (!trip) throw { status: 404, message: 'Trip not found' };
     
@@ -36,6 +36,8 @@ class ExpenseService extends BaseService<IExpense> {
       tripId: data.tripId,
       date: data.date || Date.now(),
       createdBy: userId,
+      splitType: data.splitType || 'equal',
+      splitDetails: data.splitDetails || {},
     });
 
     const expense = await newExpense.save();

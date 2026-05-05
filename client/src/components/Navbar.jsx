@@ -18,8 +18,8 @@ const Navbar = () => {
         }
       );
       if (response.ok) {
-        const data = await response.json();
-        setNotifications(data);
+        const json = await response.json();
+        setNotifications(json.data || []);
       }
     } catch (error) {
       console.error("Error fetching notifications:", error);

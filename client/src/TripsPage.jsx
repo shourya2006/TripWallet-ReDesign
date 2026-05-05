@@ -41,7 +41,8 @@ const TripsPage = () => {
           }
         );
         if (response.ok) {
-          const data = await response.json();
+          const json = await response.json();
+          const data = json.data;
           setTrips(data.trips);
           setTotalPages(data.totalPages);
           setTotalTrips(data.totalTrips);

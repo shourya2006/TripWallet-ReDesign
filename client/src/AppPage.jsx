@@ -37,10 +37,11 @@ const AppPage = () => {
         }
       );
       if (response.ok) {
-        const data = await response.json();
+        const json = await response.json();
+        const data = json.data;
         if (Array.isArray(data)) {
           setTrips(data);
-        } else if (data.trips && Array.isArray(data.trips)) {
+        } else if (data && data.trips && Array.isArray(data.trips)) {
           setTrips(data.trips);
         } else {
           setTrips([]);
@@ -65,8 +66,8 @@ const AppPage = () => {
         }
       );
       if (response.ok) {
-        const data = await response.json();
-        setBalance(data);
+        const json = await response.json();
+        setBalance(json.data);
       }
     } catch (error) {
       console.error("Error fetching balance:", error);
@@ -170,8 +171,9 @@ const AppPage = () => {
         }
       );
       if (response.ok) {
-        const data = await response.json();
-        const filtered = data.filter(
+        const json = await response.json();
+        const data = json.data;
+        const filtered = (data || []).filter(
           (u) => !selectedFriends.some((f) => f._id === u._id)
         );
         setSearchResults(filtered);

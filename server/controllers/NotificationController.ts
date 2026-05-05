@@ -49,5 +49,3 @@ class NotificationController extends BaseController {
 }
 
 export default NotificationController;
-
-*server/controllers/NotificationController.ts*
